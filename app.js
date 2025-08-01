@@ -23,7 +23,7 @@ let posts = [
      date: "2025-07-29"
     },
     {
-     id: 1,
+     id: 2,
      title: "Node.js Grundlagen",
      content: "In diesem Beitrag beschreibe ich die Node.js Grundlagen",
      author: "Bob",
@@ -44,24 +44,24 @@ const server = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET','POST','OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
-        return;
-    }
+    if (req.url === '/posts' && req.method === 'GET') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(posts));
+    } else if (req.url.match(/^\/posts\/(\d+)$/) && req.method === 'GET') {
+        const id = parseInt(req.url.split('/')[2]);
+        const post = posts.find(p => p.id === id);
 
-    if (req.method === 'GET' && req.url === '/posts') {
-        res.writeHead(200, { 'Content-Type': 'application/json'});
-        res.end(JSON.stringify(posts));
-    
+        if (post) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify(post));
+        } else {
+                res.writeHead(404, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ message: 'Blogbeitrag nicht gefunden' }));
+        }
     } else {
-        res.writeHead(404, { 'Content-Type':'application/json'});
-        res.end(JSON.stringify({ message: "Endpunkt nicht gefunden."}));
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Endpunkt nicht gefunden' }));
     }
-
-
-    res.writeHead(200, {'Content-Type': 'text/plain' });
-    res.end('Hallo Welt vom Node.js Server.');
 });
 
 // Server starten
@@ -69,5 +69,8 @@ const server = http.createServer((req, res) => {
 server.listen(port, hostname, () => {
     console.log(`Server gestartet unter http://${hostname}:${port}/`);
     console.log(`Teste den GET /posts Endpunkt unter http://${hostname}:${port}/posts`);
-})
+    console.log(`Testen Sie: GET http://${hostname}:${port}/posts/1`);
+    console.log(`Testen Sie: GET http://${hostname}:${port}/posts/2`);
+    console.log(`Testen Sie: GET http://${hostname}:${port}/posts/99 (für 404 Fehler)`);
+});
 
